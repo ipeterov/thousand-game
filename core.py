@@ -185,7 +185,7 @@ class Move:
             reverse=True,
             key=lambda submove: (submove[1].suit == self.trump, int(submove[1])),
         )
-        return submoves[0]
+        return submoves[0][0]
 
 
 class AbstractPlayer:
