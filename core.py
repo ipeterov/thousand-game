@@ -31,7 +31,7 @@ class Card:
         self.suit = suit
 
     def __repr__(self):
-        return f'<Card {self.rank} of {self.suit}>'
+        return f'{self.rank} of {self.suit}'
 
     def __int__(self):
         return RANK_VALUES[self.rank]
@@ -61,10 +61,24 @@ class Round:
     def __init__(self, players):
         self.players = players
         self.history = []
+        self.bid_history = []
         self.trumps = {}
         self.trump = None
         self.bid_winner = None
         self.winning_bid = None
+        self.results = None
+
+    def __repr__(self):
+        lines = []
+        for bid in self.bid_history:
+            lines.append(str(bid))
+        for move in self.history:
+            lines.append(str(move))
+
+        lines.append(f'Result was: {self.results}')
+        lines.append('')
+
+        return '\n'.join(lines)
 
     def _remaining_players(self, leading_player):
         leading_index = self.players.index(leading_player)
@@ -92,6 +106,7 @@ class Round:
                 else:
                     bid_winner = player
                     current_bid = new_bid
+                    self.bid_history.append(Bid(player, new_bid))
         return bid_winner, current_bid
 
     def pre_game(self, bid_winner, stock):
@@ -123,19 +138,17 @@ class Round:
 
             self.history.append(move)
 
-    def get_results(self):
-        results = {player: 0 for player in self.players}
+    def calculate_results(self):
+        self.results = {player: 0 for player in self.players}
         for move in self.history:
-            results[move.winner()] += int(move)
+            self.results[move.winner()] += int(move)
         for trump, player in self.trumps.items():
-            results[player] += TRUMP_VALUES[trump]
+            self.results[player] += TRUMP_VALUES[trump]
 
-        if results[self.bid_winner] >= self.winning_bid:
-            results[self.bid_winner] = self.winning_bid
+        if self.results[self.bid_winner] >= self.winning_bid:
+            self.results[self.bid_winner] = self.winning_bid
         else:
-            results[self.bid_winner] = -self.winning_bid
-
-        return results
+            self.results[self.bid_winner] = -self.winning_bid
 
     def play(self):
         for player in self.players:
@@ -145,7 +158,8 @@ class Round:
         self.winning_bid = winning_bid
         self.pre_game(self.bid_winner, stock)
         self.moves(starting_player=self.bid_winner)
-        return self.get_results()
+        self.calculate_results()
+        return self.results
 
 
 class Game:
@@ -156,14 +170,27 @@ class Game:
         self.results = {player: 0 for player in players}
 
     def move_players(self):
-        self.players.insert(self.players.pop(), 0)
+        self.players.insert(0, self.players.pop())
 
-    def play(self):
+    def play(self, with_prints=False):
         while all(result < 1000 for result in self.results.values()):
-            results = Round(self.players).play()
+            round = Round(self.players)
+            results = round.play()
             for player, result in results.items():
                 self.results[player] += result
+            self.move_players()
+            if with_prints:
+                print(round)
         return self.results
+
+
+class Bid:
+    def __init__(self, player, amount):
+        self.player = player
+        self.amount = amount
+
+    def __repr__(self):
+        return f'{self.player} bid {self.amount}'
 
 
 class Move:
@@ -198,12 +225,24 @@ class AbstractPlayer:
     def __init__(self):
         self.is_bidding = True
         self.cards = []
+        self.name = self._generate_name()
 
     def __repr__(self):
-        if hasattr(self, 'name'):
-            return f'{type(self).__name__} {self.name}'
-        else:
-            return f'nameless {type(self).__name__}'
+        return f'{type(self).__name__} {self.name}'
+
+    def _generate_name(self):
+        names = [
+            'Liam',
+            'Noah',
+            'WilliamJames',
+            'Oliver',
+            'Benjamin',
+            'Elijah',
+            'Lucas',
+            'Mason',
+            'Logan',
+        ]
+        return f'{random.choice(names)} #{random.randrange(100)}'
 
     def start_round(self):
         self.is_bidding = True

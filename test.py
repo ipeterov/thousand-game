@@ -3,5 +3,4 @@ from players.trivial_player import TrivialPlayer
 
 
 players = [TrivialPlayer(), TrivialPlayer(), TrivialPlayer()]
-game = Game(players)
-print(game.play())
+result = Game(players).play(with_prints=True)
