@@ -1,26 +1,29 @@
 import random
 import itertools
 
+from unicards import unicard
 
-SUIT = ['ace', 'ten', 'king', 'queen', 'jack', 'nine']
-SUIT_NAMES = ['diamonds', 'clubs', 'hearts', 'spades']
-TRUMP_NAMES = SUIT_NAMES + ['aces']
+
+SUIT = ['A', 'T', 'K', 'Q', 'J', '9']
+SUIT_NAMES = ['d', 'c', 'h', 's']
 MOVE_COUNT = 8
 RANK_VALUES = {
-    'ace': 11,
-    'ten': 10,
-    'king': 4,
-    'queen': 3,
-    'jack': 2,
-    'nine': 0,
+    'A': 11,
+    'T': 10,
+    'K': 4,
+    'Q': 3,
+    'J': 2,
+    '9': 0,
 }
 TRUMP_VALUES = {
-    'diamonds': 200,
-    'clubs': 100,
-    'hearts': 80,
-    'spades': 60,
-    'aces': 40,
+    'A': 200,
+    'c': 100,
+    's': 80,
+    'h': 60,
+    'd': 40,
 }
+TRUMP_NAMES = TRUMP_VALUES.keys()
+
 
 
 class Card:
@@ -32,25 +35,26 @@ class Card:
 
     def __repr__(self):
         """
-        >>> Card('ace', 'spades')
-        ace of spades
+        >>> Card('A', 's')
+        🂡
         """
 
-        return f'{self.rank} of {self.suit}'
+        key = f'{self.rank}{self.suit}'
+        return unicard(key)
 
     def __int__(self):
         """
-        >>> int(Card('ace', 'spades'))
+        >>> int(Card('A', 's'))
         11
-        >>> int(Card('ten', 'hearts'))
+        >>> int(Card('T', 'h'))
         10
-        >>> int(Card('king', 'clubs'))
+        >>> int(Card('K', 'c'))
         4
-        >>> int(Card('queen', 'diamonds'))
+        >>> int(Card('Q', 'd'))
         3
-        >>> int(Card('jack', 'spades'))
+        >>> int(Card('J', 's'))
         2
-        >>> int(Card('nine', 'hearts'))
+        >>> int(Card('9', 'h'))
         0
         """
 
@@ -58,7 +62,7 @@ class Card:
 
     def __eq__(self, other):
         """
-        >>> Card('nine', 'hearts') == Card('nine', 'hearts')
+        >>> Card('9', 'h') == Card('9', 'h')
         True
         """
 
