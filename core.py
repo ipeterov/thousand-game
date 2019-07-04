@@ -199,6 +199,12 @@ class AbstractPlayer:
         self.is_bidding = True
         self.cards = []
 
+    def __repr__(self):
+        if hasattr(self, 'name'):
+            return f'{type(self).__name__} {self.name}'
+        else:
+            return f'nameless {type(self).__name__}'
+
     def start_round(self):
         self.is_bidding = True
         self.cards = []
