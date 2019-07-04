@@ -3,12 +3,15 @@ from core import AbstractPlayer
 
 class TrivialPlayer(AbstractPlayer):
     def _bid(self, current_bid):
+        # Settle on 100, or just don't bid
         return None        
 
     def _give_stock_cards(self):
+        # Give away 2 least ranked cards
         return sorted(self.cards, key=lambda c: int(c))[:2]
 
     def _move(self, round, leading_move):
+        # Move with highest ranked card, use marriage if we have it
         card = sorted(self.cards, key=lambda c: int(c))[-1]
         marriage = None
         if leading_move:
