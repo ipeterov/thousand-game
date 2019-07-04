@@ -1,7 +1,7 @@
 from core import Game
-from players.random_player import RandomPlayer
+from players.trivial_player import TrivialPlayer
 
 
-players = [RandomPlayer(), RandomPlayer(), RandomPlayer()]
+players = [TrivialPlayer(), TrivialPlayer(), TrivialPlayer()]
 game = Game(players)
 print(game.play())
