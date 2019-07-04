@@ -5,10 +5,10 @@ from core import AbstractPlayer
 
 class RandomPlayer(AbstractPlayer):
     def _bid(self, current_bid):
-        if random.random() > 0.5:
-        	return current_bid + 5
+        if random.random() > 0.9:
+            return current_bid + 5
         else:
-        	return None
+            return None
 
     def _give_stock_cards(self):
         return random.sample(self.cards, 2)
