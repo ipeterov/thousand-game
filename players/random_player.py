@@ -13,5 +13,5 @@ class RandomPlayer(AbstractPlayer):
     def _give_stock_cards(self):
         return random.sample(self.cards, 2)
 
-    def _move(self, round, leading_move):
-        return random.choice(self.cards), None
+    def _move(self, round, moveable_cards, leading_move):
+        return random.choice(moveable_cards), None
