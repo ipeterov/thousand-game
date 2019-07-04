@@ -63,10 +63,10 @@ class Round:
         self.history = []
         self.trumps = {}
         self.trump = None
-        self.leading_player = None
+        self.bid_winner = None
         self.winning_bid = None
 
-    def remaining_players(self, leading_player):
+    def _remaining_players(self, leading_player):
         leading_index = self.players.index(leading_player)
         return self.players[leading_index + 1:] + self.players[:leading_index]
 
@@ -115,7 +115,7 @@ class Round:
 
             move.add_submove(leading_player, card)
             
-            for player in self.remaining_players(leading_player):
+            for player in self._remaining_players(leading_player):
                 card, _ = player.move(self, leading_move=False)
                 move.add_submove(player, card)
 
@@ -129,16 +129,22 @@ class Round:
             results[move.winner()] += int(move)
         for trump, player in self.trumps.items():
             results[player] += TRUMP_VALUES[trump]
+
+        if results[self.bid_winner] >= self.winning_bid:
+            results[self.bid_winner] = self.winning_bid
+        else:
+            results[self.bid_winner] = -self.winning_bid
+
         return results
 
     def play(self):
         for player in self.players:
             player.start_round()
         stock = self.deal_cards()
-        bid_winner, winning_bid = self.bidding()
+        self.bid_winner, winning_bid = self.bidding()
         self.winning_bid = winning_bid
-        self.pre_game(bid_winner, stock)
-        self.moves(starting_player=bid_winner)
+        self.pre_game(self.bid_winner, stock)
+        self.moves(starting_player=self.bid_winner)
         return self.get_results()
 
 
