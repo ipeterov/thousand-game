@@ -70,12 +70,14 @@ class Round:
         leading_index = self.players.index(leading_player)
         return self.players[leading_index + 1:] + self.players[:leading_index]
 
-    def deal_cards(self)
+    def deal_cards(self):
         deck = Deck()
         stock, *player_deals = deck.deal()
 
         for player, cards in zip(self.players, player_deals):
             player.receive_deal(cards)
+
+        return stock
 
     def bidding(self):
         current_bid = 100
@@ -92,13 +94,13 @@ class Round:
                     current_bid = new_bid
         return bid_winner, current_bid
 
-    def pre_game(self, bid_winner):
+    def pre_game(self, bid_winner, stock):
         bid_winner.receive_stock(stock)
 
         card1, card2 = bid_winner.give_stock_cards()
         player1, player2 = (player for player in self.players if player != bid_winner)
-        player1.receive_stock(card1)
-        player2.receive_stock(card2)        
+        player1.receive_stock_card(card1)
+        player2.receive_stock_card(card2)        
 
     def moves(self, starting_player):
         leading_player = starting_player
@@ -130,10 +132,12 @@ class Round:
         return results
 
     def play(self):
-        self.deal_cards()
+        for player in self.players:
+            player.start_round()
+        stock = self.deal_cards()
         bid_winner, winning_bid = self.bidding()
         self.winning_bid = winning_bid
-        self.pre_game(bid_winner)
+        self.pre_game(bid_winner, stock)
         self.moves(starting_player=bid_winner)
         return self.get_results()
 
@@ -186,19 +190,19 @@ class Move:
 
 class AbstractPlayer:
     def __init__(self):
-        self.is_bidding = None
+        self.is_bidding = True
         self.cards = []
 
-    def start_round():
-        self.cards = []
+    def start_round(self):
         self.is_bidding = True
+        self.cards = []
 
     def _bid(self, current_bid):
         raise NotImplementedError()
 
     def bid(self, current_bid):
         new_bid = self._bid(current_bid)
-        assert new_bid is None or isinstance(new_bid) == int, 'new bid must be None or int'
+        assert new_bid is None or isinstance(new_bid, int), 'new bid must be None or int'
         if new_bid is not None:
             assert self.is_bidding, 'player is out of bidding'
             assert new_bid > current_bid, 'new bid must be higher than the current bid'
@@ -218,9 +222,10 @@ class AbstractPlayer:
         raise NotImplementedError()
 
     def give_stock_cards(self):
-        assert len(cards) == 10
-        card1, card2 = self._give_stock()
-        cards.remove(card1); cards.remove(card2)
+        assert len(self.cards) == 10
+        card1, card2 = self._give_stock_cards()
+        self.cards.remove(card1)
+        self.cards.remove(card2)
         return card1, card2
 
     def _move(self, round):
@@ -231,18 +236,20 @@ class AbstractPlayer:
 
         assert card in self.cards, 'can\'t make a move with a card you don\'t have'
 
-        assert new_trump in TRUMP_NAMES, f'invalid trump name {new_trump}'
-        if not leading_move:
-            assert not new_trump, 'can\'t declare trump in a non-leading move'
+        assert new_trump is None or isinstance(new_trump, str), 'new trump must be None or str'
+        if new_trump is not None:
+            assert new_trump in TRUMP_NAMES, f'invalid trump name {new_trump}'
+            if not leading_move:
+                assert not new_trump, 'can\'t declare trump in a non-leading move'
 
-        marriage_ranks = ['king', 'queen']
-        if card.rank in marriage_ranks:
-            marriage_ranks.remove(card.rank)
-            other_rank = marriage_ranks.pop()
-            other = Card(other_rank, card.suit)
-            assert other in self.cards, f'{other_rank} needed for marriage'
-        elif card.rank == 'ace':
-            assert sum(card.rank == 'ace' for card in self.cards) == 4, '4 aces needed for ace trump'
+            marriage_ranks = ['king', 'queen']
+            if card.rank in marriage_ranks:
+                marriage_ranks.remove(card.rank)
+                other_rank = marriage_ranks.pop()
+                other = Card(other_rank, card.suit)
+                assert other in self.cards, f'{other_rank} needed for marriage'
+            elif card.rank == 'ace':
+                assert sum(card.rank == 'ace' for card in self.cards) == 4, '4 aces needed for ace trump'
 
         self.cards.remove(card)
 
