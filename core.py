@@ -211,6 +211,9 @@ class AbstractPlayer:
     def receive_stock(self, stock):
         self.cards += stock
 
+    def receive_stock_card(self, stock_card):
+        self.cards.append(stock_card)
+
     def _give_stock_cards(self):
         raise NotImplementedError()
 
