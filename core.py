@@ -31,17 +31,47 @@ class Card:
         self.suit = suit
 
     def __repr__(self):
+        """
+        >>> Card('ace', 'spades')
+        ace of spades
+        """
+
         return f'{self.rank} of {self.suit}'
 
     def __int__(self):
+        """
+        >>> int(Card('ace', 'spades'))
+        11
+        >>> int(Card('ten', 'hearts'))
+        10
+        >>> int(Card('king', 'clubs'))
+        4
+        >>> int(Card('queen', 'diamonds'))
+        3
+        >>> int(Card('jack', 'spades'))
+        2
+        >>> int(Card('nine', 'hearts'))
+        0
+        """
+
         return RANK_VALUES[self.rank]
 
     def __eq__(self, other):
+        """
+        >>> Card('nine', 'hearts') == Card('nine', 'hearts')
+        True
+        """
+
         return self.rank == other.rank and self.suit == other.suit
 
 
 class Deck:
     def cards(self):
+        """
+        >>> len(Deck().cards())
+        24
+        """
+
         cards = [Card(rank, suit) for rank, suit in itertools.product(SUIT, SUIT_NAMES)]
         assert len(cards) == 24
         return cards
@@ -52,7 +82,11 @@ class Deck:
         return cards
 
     def deal(self):
-        """Return stock, player1, player2, player3"""
+        """Return stock, player1, player2, player3
+
+        >>> s, p1, p2, p3 = Deck().deal(); len(s) == 3 and len(p1) == len(p2) == len(p3) == 7
+        True
+        """
         cards = self.shuffled_cards()
         return cards[:3], cards[3:10], cards[10:17], cards[17:]
 
@@ -122,16 +156,16 @@ class Round:
         for i in range(MOVE_COUNT):
             move = Move(self.trump)
 
-            card, new_trump = leading_player.move(self, leading_move=True)            
+            leading_card, new_trump = leading_player.move(self, self.trump, leading_card=None)            
             if new_trump:
                 # Checks are performed in Player.move
                 self.trump = new_trump
                 self.trumps[new_trump] = leading_player
 
-            move.add_submove(leading_player, card)
+            move.add_submove(leading_player, leading_card)
             
             for player in self._remaining_players(leading_player):
-                card, _ = player.move(self, leading_move=False)
+                card, _ = player.move(self, self.trump, leading_card=leading_card)
                 move.add_submove(player, card)
 
             leading_player = move.winner()
@@ -279,11 +313,23 @@ class AbstractPlayer:
         self.cards.remove(card2)
         return card1, card2
 
-    def _move(self, round, leading_move):
+    def _move(self, round, moveable_cards, leading_move):
         raise NotImplementedError()
 
-    def move(self, round, leading_move):
-        card, new_trump = self._move(round, leading_move)
+    def move(self, round, trump, leading_card):
+        leading_move = not leading_card
+
+        if leading_move:
+            moveable_cards = self.cards
+        else:
+            moveable_suits = {leading_card.suit}
+            if trump:
+                moveable_suits.add(trump)
+            moveable_cards = [card for card in self.cards if card.suit in moveable_suits]
+            if not moveable_cards:
+                moveable_cards = self.cards
+
+        card, new_trump = self._move(round, moveable_cards, leading_move)
 
         assert card in self.cards, 'can\'t make a move with a card you don\'t have'
 
