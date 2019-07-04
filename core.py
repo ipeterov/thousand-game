@@ -240,11 +240,11 @@ class AbstractPlayer:
         self.cards.remove(card2)
         return card1, card2
 
-    def _move(self, round):
+    def _move(self, round, leading_move):
         raise NotImplementedError()
 
     def move(self, round, leading_move):
-        card, new_trump = self._move(round)
+        card, new_trump = self._move(round, leading_move)
 
         assert card in self.cards, 'can\'t make a move with a card you don\'t have'
 
